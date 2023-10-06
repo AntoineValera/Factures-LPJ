@@ -249,90 +249,115 @@ def on_file_select(event):
 
 root = tk.Tk()
 root.configure(bg="white")  # Set white background
+root.geometry("550x768".format(root.winfo_width()))
+
+style = ttk.Style()
+style.configure('White.TFrame', background='white')
+
+# Create main frame
+main_frame = ttk.Frame(root, padding='10', style='White.TFrame')
+main_frame.pack(fill=tk.BOTH, expand=True)
+
+# Create canvas for scrolling
+canvas = tk.Canvas(main_frame)
+canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+scrollbar = ttk.Scrollbar(main_frame, orient=tk.VERTICAL, command=canvas.yview)
+scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+canvas.configure(yscrollcommand=scrollbar.set)
+
+# Here is where canvas_frame is declared
+canvas_frame = ttk.Frame(canvas, style='White.TFrame')
+canvas.create_window((0, 0), window=canvas_frame, anchor=tk.NW)
+
+canvas_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+
 
 # Logo
 logo_image = Image.open("Logo.png")
 logo_image = logo_image.resize((300, int(300 * logo_image.height / logo_image.width)), Image.ANTIALIAS)  # Resize with aspect ratio
 photo = ImageTk.PhotoImage(logo_image)
-logo_label = tk.Label(root, image=photo, bg="white")  # Set background
+logo_label = tk.Label(canvas_frame, image=photo, bg="white")  # Set background
 logo_label.image = photo
-logo_label.pack()
+logo_label.pack(in_=canvas_frame, fill=tk.X, expand=True, padx=10, pady=5)
 
 # Create a canvas to display the image
-#canvas = tk.Canvas(root, width=300, height=300, bg="white")
-canvas = ImageCanvas(root, width=300, height=300, bg="white")
-canvas.pack(side="right")
+#canvas = tk.Canvas(canvas_frame, width=300, height=300, bg="white")
+canvas = ImageCanvas(canvas_frame, width=300, height=300, bg="white")
+canvas.pack(in_=canvas_frame, side="right")
 
 
 # Create all labels, buttons, eyntry fields and dropdowns
 company_entry_frame = ttk.Frame(root)
 company_entry_frame.configure(style="InputFrame.TFrame")  # Set style for the entry frame
-company_entry_frame.pack()
-company_label = tk.Label(root, text="Company Name", bg="white", fg="black")  # Set background and text color
-company_label.pack()
+company_entry_frame.pack(in_=canvas_frame, )
+company_label = tk.Label(canvas_frame, text="Company Name", bg="white", fg="black")  # Set background and text color
+company_label.pack(in_=canvas_frame, fill=tk.X, expand=True, padx=10, pady=5)
 company_entry = AutocompleteEntry(company_entry_frame)
 company_entry.configure(background="white")  # Set background color
 company_entry.pack(side="left")
 
-date_label = tk.Label(root, text="Date", bg="white", fg="black")  # Set background and text color
-date_label.pack()
-date_entry = tk.Entry(root, highlightcolor="#c7e9f9", highlightthickness=1)  # Set contour
-date_entry.configure(background="white")  # Set background color
-date_entry.pack()
 
-type_label = tk.Label(root, text="Type", bg="white", fg="black")  # Set background and text color
-type_label.pack()
+date_label = tk.Label(canvas_frame, text="Date", bg="white", fg="black")  # Set background and text color
+date_label.pack(in_=canvas_frame, fill=tk.X, expand=True, padx=10, pady=5)
+date_entry = tk.Entry(canvas_frame, highlightcolor="#c7e9f9", highlightthickness=1)  # Set contour
+date_entry.configure(background="white")  # Set background color
+date_entry.pack(in_=canvas_frame, )
+
+type_label = tk.Label(canvas_frame, text="Type", bg="white", fg="black")  # Set background and text color
+type_label.pack(in_=canvas_frame, fill=tk.X, expand=True, padx=10, pady=5)
 type_var = tk.StringVar(root)
 type_style = ttk.Style()
 type_style.configure("Type.TCombobox", background="white")  # Set background color for combobox
-type_option = ttk.Combobox(root, textvariable=type_var, values=["fonctionnement", "investissement"], state="readonly")
+type_option = ttk.Combobox(canvas_frame, textvariable=type_var, values=["fonctionnement", "investissement"], state="readonly")
 type_option.configure(background="white")  # Set background color
-type_option.pack()
+type_option.pack(in_=canvas_frame, )
 type_option.bind("<<ComboboxSelected>>", update_subtype_options)  # Bind the update_subtype_options function to the selection event
 
 
-subtype_label = tk.Label(root, text="Sub-Type", bg="white", fg="black")  # Set background and text color
-subtype_label.pack()
+subtype_label = tk.Label(canvas_frame, text="Sub-Type", bg="white", fg="black")  # Set background and text color
+subtype_label.pack(in_=canvas_frame, fill=tk.X, expand=True, padx=10, pady=5)
 subtype_var = tk.StringVar(root)
-subtype_option = ttk.Combobox(root, textvariable=subtype_var, values=["case1", "case2", "case3"], state="readonly")
+subtype_option = ttk.Combobox(canvas_frame, textvariable=subtype_var, values=["case1", "case2", "case3"], state="readonly")
 subtype_option.configure(background="white")  # Set background color
-subtype_option.pack()
+subtype_option.pack(in_=canvas_frame, )
 
-price_label = tk.Label(root, text="Price (with comma, without EUR)", bg="white", fg="black")  # Set background and text color
-price_label.pack()
-price_entry = tk.Entry(root, highlightcolor="#c7e9f9", highlightthickness=1)  # Set contour
+price_label = tk.Label(canvas_frame, text="Price (with comma, without EUR)", bg="white", fg="black")  # Set background and text color
+price_label.pack(in_=canvas_frame, fill=tk.X, expand=True, padx=10, pady=5)
+price_entry = tk.Entry(canvas_frame, highlightcolor="#c7e9f9", highlightthickness=1)  # Set contour
 price_entry.configure(background="white")  # Set background color
-price_entry.pack()
+price_entry.pack(in_=canvas_frame, )
 
 input_dir = tk.StringVar(root)
 output_dir = tk.StringVar(root)
 
-input_dir_label = tk.Label(root, text="Input Directory", bg="white", fg="black")  # Set background and text color
-input_dir_label.pack()
-input_dir_button = ttk.Button(root, text="Browse", command=browse_input_dir)
-input_dir_button.pack()
-input_dir_entry = tk.Entry(root, textvariable=input_dir)
-input_dir_entry.pack()
+input_dir_label = tk.Label(canvas_frame, text="Input Directory", bg="white", fg="black")  # Set background and text color
+input_dir_label.pack(in_=canvas_frame, fill=tk.X, expand=True, padx=10, pady=5)
+input_dir_button = ttk.Button(canvas_frame, text="Browse", command=browse_input_dir)
+input_dir_button.pack(in_=canvas_frame, )
+input_dir_entry = tk.Entry(canvas_frame, textvariable=input_dir)
+input_dir_entry.pack(in_=canvas_frame, )
 
 # Input files Listbox
-input_files_label = tk.Label(root, text="Input Files", bg="white", fg="black")  # Set background and text color
-input_files_label.pack()
-input_files_listbox = tk.Listbox(root, height=10)
-input_files_listbox.pack()
+input_files_label = tk.Label(canvas_frame, text="Input Files", bg="white", fg="black")  # Set background and text color
+input_files_label.pack(in_=canvas_frame, fill=tk.X, expand=True, padx=10, pady=5)
+input_files_listbox = tk.Listbox(canvas_frame, height=10)
+input_files_listbox.pack(in_=canvas_frame, )
 
 # Bind the listbox selection event to our function
 input_files_listbox.bind('<<ListboxSelect>>', on_file_select)
 
-output_dir_label = tk.Label(root, text="Output Directory", bg="white", fg="black")  # Set background and text color
-output_dir_label.pack()
-output_dir_button = ttk.Button(root, text="Browse", command=browse_output_dir)
-output_dir_button.pack()
-output_dir_entry = tk.Entry(root, textvariable=output_dir)
-output_dir_entry.pack()
+output_dir_label = tk.Label(canvas_frame, text="Output Directory", bg="white", fg="black")  # Set background and text color
+output_dir_label.pack(in_=canvas_frame, fill=tk.X, expand=True, padx=10, pady=5)
+output_dir_button = ttk.Button(canvas_frame, text="Browse", command=browse_output_dir)
+output_dir_button.pack(in_=canvas_frame, )
+output_dir_entry = tk.Entry(canvas_frame, textvariable=output_dir)
+output_dir_entry.pack(in_=canvas_frame, )
 
 # Save Button
-save_button = ttk.Button(root, text="Save", command=save)
-save_button.pack()
+save_button = ttk.Button(canvas_frame, text="Save", command=save)
+save_button.pack(in_=canvas_frame, )
 
 # Load paths from json file if it exists
 load_paths()

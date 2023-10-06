@@ -4,9 +4,9 @@
 block_cipher = None
 
 a = Analysis(['main.py'],
-             pathex=['C:/Users/vanto/Desktop/test LPJ/main.py'],
+             pathex=['main.py'],
              binaries=[],
-             datas=[('C:/Users/vanto/Desktop/test LPJ/Logo.png', '.')],
+             datas=[('Logo.png', '.')],
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
