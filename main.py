@@ -95,36 +95,38 @@ class AutocompleteEntry(ttk.Entry):
         self.bind("<Down>", self.down)
         self.lb_up = False
         self.lb = None
+        self.toplevel = None
 
     def changed(self, name, index, mode):
         if self.var.get() == '':
-            if self.lb is not None:
-                self.lb.destroy()
+            if self.toplevel:
+                self.toplevel.destroy()
                 self.lb_up = False
         else:
             words = self.completion_list
             if words:
                 if not self.lb_up:
-                    self.lb = tk.Listbox()
+                    self.toplevel = tk.Toplevel(self)
+                    self.toplevel.wm_overrideredirect(True)
+                    self.toplevel.geometry('+%d+%d' % (self.winfo_rootx(), self.winfo_rooty() + self.winfo_height()))
+                    self.lb = tk.Listbox(self.toplevel)
                     self.lb.bind("<Double-Button-1>", self.selection)
                     self.lb.bind("<Right>", self.selection)
-                    self.lb.place(x=self.winfo_x(), y=self.winfo_y() + self.winfo_height())
+                    self.lb.pack()
                     self.lb_up = True
                 self.lb.delete(0, tk.END)
                 for w in words:
                     if w.lower().startswith(self.var.get().lower()):
                         self.lb.insert(tk.END, w)
-                # Resize the listbox
-                self.lb.config(height=self.lb.size())
             else:
                 if self.lb_up:
-                    self.lb.destroy()
+                    self.toplevel.destroy()
                     self.lb_up = False
 
     def selection(self, event):
         if self.lb_up:
             self.var.set(self.lb.get(tk.ACTIVE))
-            self.lb.destroy()
+            self.toplevel.destroy()
             self.lb_up = False
             self.icursor(tk.END)
 
@@ -152,7 +154,7 @@ class AutocompleteEntry(ttk.Entry):
             self.lb.activate(index)
 
     def set_completion_list(self, completion_list):
-        self.completion_list = sorted(completion_list, key=str.lower)
+        self.completion_list = sorted(list(set(completion_list)), key=str.lower)
 
 class ImageCanvas(tk.Canvas):
     def __init__(self, parent, *args, **kwargs):
@@ -254,7 +256,6 @@ root.geometry("800x768")
 style = ttk.Style()
 style.configure('White.TFrame', background="white", bordercolor="#c7e9f9", borderwidth=1)
 
-
 # Create main frame
 main_frame = ttk.Frame(root, padding='10', style='White.TFrame')
 main_frame.pack(fill=tk.BOTH, expand=True)
@@ -282,81 +283,99 @@ logo_label = tk.Label(canvas_frame, image=photo, bg="white")
 logo_label.image = photo
 logo_label.grid(row=5, column=0, rowspan=10, padx=10, pady=5)
 
-# Adjust other widgets
-company_label = tk.Label(canvas_frame, text="Company Name", bg="white", fg="black")
+# Create a separate frame for the ImageCanvas
+canvas_container = ttk.Frame(canvas_frame)
+canvas_container.grid(row=5, column=2, sticky="nsew")
+
+# Create a canvas to display the image
+canvas = ImageCanvas(canvas_container, width=300, height=300, bg="white")
+canvas.pack(fill="both", expand=True)
+
+# Adjust the weights
+canvas_frame.grid_columnconfigure(2, weight=1)  # Set weight for the column
+canvas_frame.grid_rowconfigure(5, weight=1)     # Set weight for the row
+
+# Create a frame for the central column
+center_frame = ttk.Frame(canvas_frame, style='White.TFrame')
+center_frame.grid(row=5, column=1, sticky="nsew")
+center_frame.grid_rowconfigure(0, weight=1)  # Set weight for the rows in center_frame
+center_frame.grid_columnconfigure(0, weight=1)  # Set weight for the columns in center_frame
+
+# Adjust other widgets inside center_frame
+company_label = tk.Label(center_frame, text="Company Name", bg="white", fg="black")
 company_label.grid(row=1, column=1, sticky=tk.W, padx=10, pady=5)
 
-company_entry_frame = ttk.Frame(canvas_frame, style="InputFrame.TFrame")
+company_entry_frame = ttk.Frame(center_frame, style="InputFrame.TFrame")
 company_entry_frame.grid(row=2, column=1, padx=10, pady=5)
 
 company_entry = AutocompleteEntry(company_entry_frame)
 company_entry.configure(background="white")
 company_entry.pack(side="left")
 
-date_label = tk.Label(canvas_frame, text="Date", bg="white", fg="black")
+date_label = tk.Label(center_frame, text="Date", bg="white", fg="black")
 date_label.grid(row=3, column=1, sticky=tk.W, padx=10, pady=5)
 
-date_entry = tk.Entry(canvas_frame, highlightcolor="#c7e9f9", highlightthickness=1)
+date_entry = tk.Entry(center_frame, highlightcolor="#c7e9f9", highlightthickness=1)
 date_entry.configure(background="white")
 date_entry.grid(row=4, column=1, padx=10, pady=5)
 
-type_label = tk.Label(canvas_frame, text="Type", bg="white", fg="black")
+type_label = tk.Label(center_frame, text="Type", bg="white", fg="black")
 type_label.grid(row=5, column=1, sticky=tk.W, padx=10, pady=5)
 
 type_var = tk.StringVar(root)
 type_style = ttk.Style()
 type_style.configure("Type.TCombobox", background="white")
-type_option = ttk.Combobox(canvas_frame, textvariable=type_var, values=["fonctionnement", "investissement"], state="readonly")
+type_option = ttk.Combobox(center_frame, textvariable=type_var, values=["fonctionnement", "investissement"], state="readonly")
 type_option.configure(background="white")
 type_option.grid(row=6, column=1, padx=10, pady=5)
+type_option.bind("<<ComboboxSelected>>", update_subtype_options)  # Added binding here
 
-subtype_label = tk.Label(canvas_frame, text="Sub-Type", bg="white", fg="black")
+subtype_label = tk.Label(center_frame, text="Sub-Type", bg="white", fg="black")
 subtype_label.grid(row=7, column=1, sticky=tk.W, padx=10, pady=5)
 
 subtype_var = tk.StringVar(root)
-subtype_option = ttk.Combobox(canvas_frame, textvariable=subtype_var, values=["case1", "case2", "case3"], state="readonly")
+subtype_option = ttk.Combobox(center_frame, textvariable=subtype_var, values=["case1", "case2", "case3"], state="readonly")
 subtype_option.configure(background="white")
 subtype_option.grid(row=8, column=1, padx=10, pady=5)
 
-price_label = tk.Label(canvas_frame, text="Price (with comma, without EUR)", bg="white", fg="black")
+price_label = tk.Label(center_frame, text="Price (with comma, without EUR)", bg="white", fg="black")
 price_label.grid(row=9, column=1, sticky=tk.W, padx=10, pady=5)
 
-price_entry = tk.Entry(canvas_frame, highlightcolor="#c7e9f9", highlightthickness=1)
+price_entry = tk.Entry(center_frame, highlightcolor="#c7e9f9", highlightthickness=1)
 price_entry.configure(background="white")
 price_entry.grid(row=10, column=1, padx=10, pady=5)
-
 
 input_dir = tk.StringVar(root)
 output_dir = tk.StringVar(root)
 
-input_dir_label = tk.Label(canvas_frame, text="Input Directory", bg="white", fg="black")
+input_dir_label = tk.Label(center_frame, text="Input Directory", bg="white", fg="black")
 input_dir_label.grid(row=11, column=1, sticky=tk.W, padx=10, pady=5)
 
-input_dir_button = ttk.Button(canvas_frame, text="Browse", command=browse_input_dir)
+input_dir_button = ttk.Button(center_frame, text="Browse", command=browse_input_dir)
 input_dir_button.grid(row=12, column=1, sticky=tk.W, padx=10, pady=5)
 
-input_dir_entry = tk.Entry(canvas_frame, textvariable=input_dir)
+input_dir_entry = tk.Entry(center_frame, textvariable=input_dir)
 input_dir_entry.grid(row=13, column=1, padx=10, pady=5)
 
 # Input files Listbox
-input_files_label = tk.Label(canvas_frame, text="Input Files", bg="white", fg="black")
+input_files_label = tk.Label(center_frame, text="Input Files", bg="white", fg="black")
 input_files_label.grid(row=14, column=1, sticky=tk.W, padx=10, pady=5)
 
-input_files_listbox = tk.Listbox(canvas_frame, height=10)
+input_files_listbox = tk.Listbox(center_frame, height=10)
 input_files_listbox.grid(row=15, column=1, padx=10, pady=5)
 input_files_listbox.bind('<<ListboxSelect>>', on_file_select)
 
-output_dir_label = tk.Label(canvas_frame, text="Output Directory", bg="white", fg="black")
+output_dir_label = tk.Label(center_frame, text="Output Directory", bg="white", fg="black")
 output_dir_label.grid(row=16, column=1, sticky=tk.W, padx=10, pady=5)
 
-output_dir_button = ttk.Button(canvas_frame, text="Browse", command=browse_output_dir)
+output_dir_button = ttk.Button(center_frame, text="Browse", command=browse_output_dir)
 output_dir_button.grid(row=17, column=1, sticky=tk.W, padx=10, pady=5)
 
-output_dir_entry = tk.Entry(canvas_frame, textvariable=output_dir)
+output_dir_entry = tk.Entry(center_frame, textvariable=output_dir)
 output_dir_entry.grid(row=18, column=1, padx=10, pady=5)
 
 # Save Button
-save_button = ttk.Button(canvas_frame, text="Save", command=save)
+save_button = ttk.Button(center_frame, text="Save", command=save)
 save_button.grid(row=19, column=1, padx=10, pady=5)
 
 # Load paths from json file if it exists
