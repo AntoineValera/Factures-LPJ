@@ -246,20 +246,21 @@ def on_file_select(event):
         #canvas.image = photo_img  # Keep a reference to the image
 
 
-
 root = tk.Tk()
-root.configure(bg="white")  # Set white background
-root.geometry("550x768".format(root.winfo_width()))
+root.configure(bg="white")
+root.geometry("800x768")
 
+# Define the style for the entry frame
 style = ttk.Style()
-style.configure('White.TFrame', background='white')
+style.configure('White.TFrame', background="white", bordercolor="#c7e9f9", borderwidth=1)
+
 
 # Create main frame
 main_frame = ttk.Frame(root, padding='10', style='White.TFrame')
 main_frame.pack(fill=tk.BOTH, expand=True)
 
 # Create canvas for scrolling
-canvas = tk.Canvas(main_frame)
+canvas = tk.Canvas(main_frame, bg="white")
 canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
 scrollbar = ttk.Scrollbar(main_frame, orient=tk.VERTICAL, command=canvas.yview)
@@ -267,104 +268,98 @@ scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
 canvas.configure(yscrollcommand=scrollbar.set)
 
-# Here is where canvas_frame is declared
+# Frame inside the canvas
 canvas_frame = ttk.Frame(canvas, style='White.TFrame')
 canvas.create_window((0, 0), window=canvas_frame, anchor=tk.NW)
 
 canvas_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
 
-
 # Logo
 logo_image = Image.open("Logo.png")
-logo_image = logo_image.resize((300, int(300 * logo_image.height / logo_image.width)), Image.ANTIALIAS)  # Resize with aspect ratio
+logo_image = logo_image.resize((300, int(300 * logo_image.height / logo_image.width)), Image.ANTIALIAS)
 photo = ImageTk.PhotoImage(logo_image)
-logo_label = tk.Label(canvas_frame, image=photo, bg="white")  # Set background
+logo_label = tk.Label(canvas_frame, image=photo, bg="white")
 logo_label.image = photo
-logo_label.pack(in_=canvas_frame, fill=tk.X, expand=True, padx=10, pady=5)
+logo_label.grid(row=5, column=0, rowspan=10, padx=10, pady=5)
 
-# Create a canvas to display the image
-#canvas = tk.Canvas(canvas_frame, width=300, height=300, bg="white")
-canvas = ImageCanvas(canvas_frame, width=300, height=300, bg="white")
-canvas.pack(in_=canvas_frame, side="right")
+# Adjust other widgets
+company_label = tk.Label(canvas_frame, text="Company Name", bg="white", fg="black")
+company_label.grid(row=1, column=1, sticky=tk.W, padx=10, pady=5)
 
+company_entry_frame = ttk.Frame(canvas_frame, style="InputFrame.TFrame")
+company_entry_frame.grid(row=2, column=1, padx=10, pady=5)
 
-# Create all labels, buttons, eyntry fields and dropdowns
-company_entry_frame = ttk.Frame(root)
-company_entry_frame.configure(style="InputFrame.TFrame")  # Set style for the entry frame
-company_entry_frame.pack(in_=canvas_frame, )
-company_label = tk.Label(canvas_frame, text="Company Name", bg="white", fg="black")  # Set background and text color
-company_label.pack(in_=canvas_frame, fill=tk.X, expand=True, padx=10, pady=5)
 company_entry = AutocompleteEntry(company_entry_frame)
-company_entry.configure(background="white")  # Set background color
+company_entry.configure(background="white")
 company_entry.pack(side="left")
 
+date_label = tk.Label(canvas_frame, text="Date", bg="white", fg="black")
+date_label.grid(row=3, column=1, sticky=tk.W, padx=10, pady=5)
 
-date_label = tk.Label(canvas_frame, text="Date", bg="white", fg="black")  # Set background and text color
-date_label.pack(in_=canvas_frame, fill=tk.X, expand=True, padx=10, pady=5)
-date_entry = tk.Entry(canvas_frame, highlightcolor="#c7e9f9", highlightthickness=1)  # Set contour
-date_entry.configure(background="white")  # Set background color
-date_entry.pack(in_=canvas_frame, )
+date_entry = tk.Entry(canvas_frame, highlightcolor="#c7e9f9", highlightthickness=1)
+date_entry.configure(background="white")
+date_entry.grid(row=4, column=1, padx=10, pady=5)
 
-type_label = tk.Label(canvas_frame, text="Type", bg="white", fg="black")  # Set background and text color
-type_label.pack(in_=canvas_frame, fill=tk.X, expand=True, padx=10, pady=5)
+type_label = tk.Label(canvas_frame, text="Type", bg="white", fg="black")
+type_label.grid(row=5, column=1, sticky=tk.W, padx=10, pady=5)
+
 type_var = tk.StringVar(root)
 type_style = ttk.Style()
-type_style.configure("Type.TCombobox", background="white")  # Set background color for combobox
+type_style.configure("Type.TCombobox", background="white")
 type_option = ttk.Combobox(canvas_frame, textvariable=type_var, values=["fonctionnement", "investissement"], state="readonly")
-type_option.configure(background="white")  # Set background color
-type_option.pack(in_=canvas_frame, )
-type_option.bind("<<ComboboxSelected>>", update_subtype_options)  # Bind the update_subtype_options function to the selection event
+type_option.configure(background="white")
+type_option.grid(row=6, column=1, padx=10, pady=5)
 
+subtype_label = tk.Label(canvas_frame, text="Sub-Type", bg="white", fg="black")
+subtype_label.grid(row=7, column=1, sticky=tk.W, padx=10, pady=5)
 
-subtype_label = tk.Label(canvas_frame, text="Sub-Type", bg="white", fg="black")  # Set background and text color
-subtype_label.pack(in_=canvas_frame, fill=tk.X, expand=True, padx=10, pady=5)
 subtype_var = tk.StringVar(root)
 subtype_option = ttk.Combobox(canvas_frame, textvariable=subtype_var, values=["case1", "case2", "case3"], state="readonly")
-subtype_option.configure(background="white")  # Set background color
-subtype_option.pack(in_=canvas_frame, )
+subtype_option.configure(background="white")
+subtype_option.grid(row=8, column=1, padx=10, pady=5)
 
-price_label = tk.Label(canvas_frame, text="Price (with comma, without EUR)", bg="white", fg="black")  # Set background and text color
-price_label.pack(in_=canvas_frame, fill=tk.X, expand=True, padx=10, pady=5)
-price_entry = tk.Entry(canvas_frame, highlightcolor="#c7e9f9", highlightthickness=1)  # Set contour
-price_entry.configure(background="white")  # Set background color
-price_entry.pack(in_=canvas_frame, )
+price_label = tk.Label(canvas_frame, text="Price (with comma, without EUR)", bg="white", fg="black")
+price_label.grid(row=9, column=1, sticky=tk.W, padx=10, pady=5)
+
+price_entry = tk.Entry(canvas_frame, highlightcolor="#c7e9f9", highlightthickness=1)
+price_entry.configure(background="white")
+price_entry.grid(row=10, column=1, padx=10, pady=5)
+
 
 input_dir = tk.StringVar(root)
 output_dir = tk.StringVar(root)
 
-input_dir_label = tk.Label(canvas_frame, text="Input Directory", bg="white", fg="black")  # Set background and text color
-input_dir_label.pack(in_=canvas_frame, fill=tk.X, expand=True, padx=10, pady=5)
+input_dir_label = tk.Label(canvas_frame, text="Input Directory", bg="white", fg="black")
+input_dir_label.grid(row=11, column=1, sticky=tk.W, padx=10, pady=5)
+
 input_dir_button = ttk.Button(canvas_frame, text="Browse", command=browse_input_dir)
-input_dir_button.pack(in_=canvas_frame, )
+input_dir_button.grid(row=12, column=1, sticky=tk.W, padx=10, pady=5)
+
 input_dir_entry = tk.Entry(canvas_frame, textvariable=input_dir)
-input_dir_entry.pack(in_=canvas_frame, )
+input_dir_entry.grid(row=13, column=1, padx=10, pady=5)
 
 # Input files Listbox
-input_files_label = tk.Label(canvas_frame, text="Input Files", bg="white", fg="black")  # Set background and text color
-input_files_label.pack(in_=canvas_frame, fill=tk.X, expand=True, padx=10, pady=5)
-input_files_listbox = tk.Listbox(canvas_frame, height=10)
-input_files_listbox.pack(in_=canvas_frame, )
+input_files_label = tk.Label(canvas_frame, text="Input Files", bg="white", fg="black")
+input_files_label.grid(row=14, column=1, sticky=tk.W, padx=10, pady=5)
 
-# Bind the listbox selection event to our function
+input_files_listbox = tk.Listbox(canvas_frame, height=10)
+input_files_listbox.grid(row=15, column=1, padx=10, pady=5)
 input_files_listbox.bind('<<ListboxSelect>>', on_file_select)
 
-output_dir_label = tk.Label(canvas_frame, text="Output Directory", bg="white", fg="black")  # Set background and text color
-output_dir_label.pack(in_=canvas_frame, fill=tk.X, expand=True, padx=10, pady=5)
+output_dir_label = tk.Label(canvas_frame, text="Output Directory", bg="white", fg="black")
+output_dir_label.grid(row=16, column=1, sticky=tk.W, padx=10, pady=5)
+
 output_dir_button = ttk.Button(canvas_frame, text="Browse", command=browse_output_dir)
-output_dir_button.pack(in_=canvas_frame, )
+output_dir_button.grid(row=17, column=1, sticky=tk.W, padx=10, pady=5)
+
 output_dir_entry = tk.Entry(canvas_frame, textvariable=output_dir)
-output_dir_entry.pack(in_=canvas_frame, )
+output_dir_entry.grid(row=18, column=1, padx=10, pady=5)
 
 # Save Button
 save_button = ttk.Button(canvas_frame, text="Save", command=save)
-save_button.pack(in_=canvas_frame, )
+save_button.grid(row=19, column=1, padx=10, pady=5)
 
 # Load paths from json file if it exists
 load_paths()
-
-# Define the style for the entry frame
-style = ttk.Style()
-style.configure("InputFrame.TFrame", background="white", bordercolor="#c7e9f9", borderwidth=1)
-
 
 root.mainloop()
